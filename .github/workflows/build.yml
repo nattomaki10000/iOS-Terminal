@@ -1,0 +1,57 @@
+name: Build iOS App
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Select Xcode
+      run: sudo xcode-select -s /Applications/Xcode_15.2.app
+
+    - name: Install XcodeGen
+      run: brew install xcodegen
+
+    - name: Generate Xcode Project
+      run: xcodegen generate
+
+    - name: Build App
+      run: |
+        xcodebuild -project PythonTerm.xcodeproj \
+        -scheme PythonTerm \
+        -configuration Release \
+        -destination "generic/platform=iOS" \
+        CODE_SIGN_IDENTITY="" \
+        CODE_SIGNING_REQUIRED=NO \
+        CODE_SIGNING_ALLOWED=NO \
+        SYMROOT=$(PWD)/build \
+        build
+
+    - name: Package IPA
+      run: |
+        mkdir -p Payload
+        cp -r build/Release-iphoneos/PythonTerm.app Payload/
+        zip -r PythonTerm.ipa Payload
+        
+    - name: Upload IPA Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: PythonTerm
+        path: PythonTerm.ipa
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      with:
+        tag_name: build-${{ github.run_number }}
+        name: Build ${{ github.run_number }}
+        files: PythonTerm.ipa
+        generate_release_notes: true
