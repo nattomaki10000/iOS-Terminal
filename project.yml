@@ -1,0 +1,34 @@
+name: PythonTerm
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: '15.0'
+
+packages:
+  SwiftTerm:
+    url: https://github.com/migueldeicaza/SwiftTerm
+    from: 1.0.0
+  ios_system:
+    url: https://github.com/holzschu/ios_system
+    branch: master
+  python3_ios:
+    url: https://github.com/holzschu/python3_ios
+    branch: master
+
+targets:
+  PythonTerm:
+    type: application
+    platform: iOS
+    sources: [Sources]
+    info:
+      properties:
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations: {}
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+    dependencies:
+      - package: SwiftTerm
+      - package: ios_system
+      - package: python3_ios
